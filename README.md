@@ -1,0 +1,1 @@
+# Weak-Satoshi-Era-Mining-Key-Generator-2009-2012-2009-2012-
