@@ -162,3 +162,146 @@ MIT – free to use and modify.
 ─────────────────────────────────────────────────────────────────────────────
 
 Happy scanning! / Удачного сканирования! 🍀
+
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                                                                           ║
+║   ADDRESS CONVERTER & SORTER – for Weak Seed Scanner                     ║
+║   КОНВЕРТЕР АДРЕСОВ И СОРТИРОВЩИК – для сканера слабых сидов           ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+These two tools prepare the binary address file (.bin) required by the
+scanner. The first tool converts a text file of addresses (Base58Check) to
+a raw 20‑byte binary format. The second tool sorts the resulting binary
+file using external merge sort – essential for large files.
+
+Эти два инструмента подготавливают бинарный файл адресов (.bin),
+необходимый для сканера. Первый конвертирует текстовый файл с адресами
+(Base58Check) в сырой 20‑байтовый бинарный формат. Второй сортирует
+полученный бинарный файл с помощью внешней сортировки слиянием –
+это необходимо для больших файлов.
+
+─────────────────────────────────────────────────────────────────────────────
+
+📄 1. CONVERTER / КОНВЕРТЕР (addresses2bin1.cpp)
+
+Input  / Вход:   addresses.txt   – one Base58Check address per line
+                                      (по одному адресу в строке)
+Output / Выход:  addresses.bin    – raw 20‑byte hashes (unsorted)
+                                      (сырые 20‑байтовые хеши, не сортированы)
+
+Compilation / Компиляция:
+
+   g++ -o converter addresses2bin1.cpp -std=c++11 -pthread -O3
+
+Usage / Использование:
+
+   ./converter
+
+The program will read addresses.txt and write addresses.bin. It uses
+multiple threads (up to 8) and processes the file in chunks of 1 million
+lines, showing progress in real time.
+
+Программа читает addresses.txt и записывает addresses.bin. Использует
+несколько потоков (до 8) и обрабатывает файл блоками по 1 млн строк,
+отображая прогресс в реальном времени.
+
+─────────────────────────────────────────────────────────────────────────────
+
+🧩 2. BINARY SORTER / СОРТИРОВЩИК БИНАРНЫХ ФАЙЛОВ (sortbinfile.cpp)
+
+Input  / Вход:   addresses.bin    – unsorted 20‑byte binary file
+                                      (неотсортированный бинарный файл)
+Output / Выход:  addresses_sorted.bin – sorted 20‑byte binary file
+                                      (отсортированный бинарный файл)
+
+Compilation / Компиляция:
+
+   g++ -o sorter sortbinfile.cpp -std=c++17 -pthread -O3
+
+Usage / Использование:
+
+   ./sorter addresses.bin addresses_sorted.bin
+
+How it works / Как это работает:
+
+   • Splits the input file into 2 GB chunks
+     (Разбивает входной файл на части по 2 ГБ)
+
+   • Sorts each chunk in memory using std::sort
+     (Сортирует каждую часть в памяти с помощью std::sort)
+
+   • Merges all sorted chunks using a priority queue (merge sort)
+     (Сливает все отсортированные части с помощью очереди с приоритетами)
+
+   • Progress is shown for both sorting and merging stages
+     (Прогресс отображается для этапов сортировки и слияния)
+
+   • Temporary chunk files (chunk_*.bin) are automatically deleted
+     (Временные файлы chunk_*.bin автоматически удаляются)
+
+─────────────────────────────────────────────────────────────────────────────
+
+🔧 FULL WORKFLOW / ПОЛНЫЙ ПОРЯДОК РАБОТЫ
+
+Step 1 – Convert text addresses to binary:
+
+   ./converter
+
+Step 2 – Sort the binary file:
+
+   ./sorter addresses.bin addresses_sorted.bin
+
+Step 3 – Run the scanner with the sorted file:
+
+   ./weak_scanner_historical_bilingual addresses_sorted.bin
+
+─────────────────────────────────────────────────────────────────────────────
+
+⚡ PERFORMANCE NOTES / ЗАМЕЧАНИЯ ПО ПРОИЗВОДИТЕЛЬНОСТИ
+
+   • Converter:   ~1‑2 million lines/sec on modern CPU
+                  (~1‑2 млн строк/сек на современном процессоре)
+
+   • Sorter:      Sorting a 100 GB file takes ~2‑4 hours
+                  (Сортировка файла 100 ГБ занимает ~2‑4 часа)
+
+   • Disk space:  Temporary chunks require ~2x input size
+                  (Временные части требуют ~2x места от входного файла)
+
+   • RAM:         Sorter uses ~2.5 GB per chunk (adjust CHUNK_BYTES if needed)
+                  (Сортировщик использует ~2.5 ГБ на часть – уменьшите CHUNK_BYTES при необходимости)
+
+─────────────────────────────────────────────────────────────────────────────
+
+📂 INPUT FILE FORMAT / ФОРМАТ ВХОДНОГО ФАЙЛА
+
+The converter accepts only P2PKH addresses (starting with '1').
+Each line must contain a valid Base58Check address. No other formats
+(P2SH, Bech32) are supported.
+
+Конвертер принимает только адреса P2PKH (начинающиеся с '1').
+Каждая строка должна содержать корректный адрес в формате Base58Check.
+Другие форматы (P2SH, Bech32) не поддерживаются.
+
+─────────────────────────────────────────────────────────────────────────────
+
+💡 TIPS / СОВЕТЫ
+
+   • For huge files (1B+ addresses), use the sorter on a machine with
+     enough RAM and SSD storage for better performance.
+     (Для огромных файлов (1 млрд+ адресов) используйте сортировщик
+     на машине с достаточным объёмом RAM и SSD для лучшей производительности.)
+
+   • The converter does NOT sort – you must run the sorter separately.
+     (Конвертер НЕ сортирует – вы должны запустить сортировщик отдельно.)
+
+   • If your input text file is already sorted, you can skip the sorter
+     and use the converter output directly.
+     (Если ваш текстовый файл уже отсортирован, вы можете пропустить
+     сортировщик и использовать выход конвертера напрямую.)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Happy converting & sorting! / Удачной конвертации и сортировки! 🚀
