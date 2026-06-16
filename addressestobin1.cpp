@@ -51,22 +51,22 @@ void process_chunk(const std::vector<std::string>& lines,
     }
 
     processed += lines.size();
-    std::cout << "\rProcessed: " << processed / 1'000'000.0 << " M lines" << std::flush;
+    std::cout << "\rPrzetworzono: " << processed / 1'000'000.0 << " mln linii" << std::flush;
 }
 
 int main() {
-    std::ifstream fin("addresses.txt");
+    std::ifstream fin("adresy_sorted.txt");
     if (!fin) {
-        std::cerr << "❌ Cannot open input file\n";
+        std::cerr << "❌ Nie można otworzyć pliku wejściowego\n";
         return 1;
     }
-    std::ofstream fout("addresses.bin", std::ios::binary);
+    std::ofstream fout("adresy.bin", std::ios::binary);
     if (!fout) {
-        std::cerr << "❌ Cannot create addresses.bin\n";
+        std::cerr << "❌ Nie można utworzyć adresy.bin\n";
         return 1;
     }
 
-    const size_t CHUNK_LINES = 1'000'000; // process 1 million lines at a time
+    const size_t CHUNK_LINES = 1'000'000; // przetwarza 1 mln linii na raz
     std::vector<std::string> lines;
     lines.reserve(CHUNK_LINES);
 
@@ -74,7 +74,7 @@ int main() {
     std::atomic<uint64_t> processed(0);
     std::string line;
 
-    std::cout << "🚀 Starting conversion of large file...\n";
+    std::cout << "🚀 Rozpoczynam konwersję dużego pliku...\n";
 
     while (true) {
         lines.clear();
@@ -99,6 +99,6 @@ int main() {
         for (auto& t : threads) t.join();
     }
 
-    std::cout << "\n✅ Conversion finished! Saved to addresses.bin\n";
+    std::cout << "\n✅ Konwersja zakończona! Zapisano do adresy.bin\n";
     return 0;
 }
